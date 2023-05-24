@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.ItemMapper;
+import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -31,16 +32,18 @@ public class ItemController {
 
     @PostMapping
     public Item saveItem(@RequestHeader("X-Sharer-User-Id") long userId, @RequestBody @Valid ItemDto itemDto) {
+        Item item = ItemMapper.toItem(itemDto);
         log.info("Item had been created");
-        return itemService.saveItem(userId, itemDto);
+        return itemService.saveItem(userId, item);
     }
 
     @PatchMapping("/{itemId}")
     public Item updateItem(@RequestHeader("X-Sharer-User-Id") long userId,
                            @PathVariable long itemId,
                            @RequestBody ItemDto itemDto) {
+        Item item = ItemMapper.toItem(itemDto);
         log.info("User had been updated");
-        return itemService.updateItem(userId, itemId, itemDto);
+        return itemService.updateItem(userId, itemId, item);
     }
 
     @GetMapping("/search")

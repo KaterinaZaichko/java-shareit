@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exception.UpdateNotAvailableException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -28,17 +27,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item saveItem(Long userId, ItemDto itemDto) {
+    public Item saveItem(Long userId, Item item) {
         User user = userRepository.findUserById(userId);
-        return itemRepository.createItem(user, itemDto);
+        return itemRepository.createItem(user, item);
     }
 
     @Override
-    public Item updateItem(Long userId, Long itemId, ItemDto itemDto) {
+    public Item updateItem(Long userId, Long itemId, Item item) {
         User user = userRepository.findUserById(userId);
-        Item item = itemRepository.findItemById(itemId);
-        if (item.getOwner().equals(user)) {
-            return itemRepository.update(item, itemDto);
+        Item itemForUpdate = itemRepository.findItemById(itemId);
+        if (itemForUpdate.getOwner().equals(user)) {
+            return itemRepository.update(itemForUpdate, item);
         } else {
             throw new UpdateNotAvailableException(
                     String.format("User with id %d is not owner of item with id %d", userId, itemId));

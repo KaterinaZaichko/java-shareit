@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.repository;
 
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -11,9 +10,9 @@ public interface ItemRepository {
 
     Item findItemById(Long itemId);
 
-    Item createItem(User user, ItemDto itemDto);
+    Item createItem(User user, Item item);
 
-    Item update(Item item, ItemDto itemDto);
+    Item update(Item itemForUpdate, Item item);
 
     List<Item> findItemsByRequest(String text);
 }

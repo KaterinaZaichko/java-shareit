@@ -2,10 +2,8 @@ package ru.practicum.shareit.item.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
@@ -43,29 +41,32 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public Item createItem(User user, ItemDto itemDto) {
-        Item item = new Item();
-        item.setId(generateId());
-        item.setName(itemDto.getName());
-        item.setDescription(itemDto.getDescription());
-        item.setAvailable(itemDto.getAvailable());
-        item.setOwner(user);
-        items.put(item.getId(), item);
-        return item;
+    public Item createItem(User user, Item item) {
+        Item newItem = new Item();
+        newItem.setId(generateId());
+        newItem.setName(item.getName());
+        newItem.setDescription(item.getDescription());
+        newItem.setAvailable(item.getAvailable());
+        newItem.setOwner(user);
+        if (item.getRequest() != null) {
+            newItem.setRequest(item.getRequest());
+        }
+        items.put(newItem.getId(), newItem);
+        return newItem;
     }
 
     @Override
-    public Item update(Item item, ItemDto itemDto) {
-        if (itemDto.getName() != null) {
-            item.setName(itemDto.getName());
+    public Item update(Item itemForUpdate, Item item) {
+        if (item.getName() != null) {
+            itemForUpdate.setName(item.getName());
         }
-        if (itemDto.getDescription() != null) {
-            item.setDescription(itemDto.getDescription());
+        if (item.getDescription() != null) {
+            itemForUpdate.setDescription(item.getDescription());
         }
-        if (itemDto.getAvailable() != null) {
-            item.setAvailable(itemDto.getAvailable());
+        if (item.getAvailable() != null) {
+            itemForUpdate.setAvailable(item.getAvailable());
         }
-        return item;
+        return itemForUpdate;
     }
 
     @Override
