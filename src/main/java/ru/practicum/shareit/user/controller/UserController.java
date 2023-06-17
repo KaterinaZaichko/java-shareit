@@ -33,14 +33,14 @@ public class UserController {
     @PostMapping
     public User saveUser(@RequestBody @Valid UserDto userDto) {
         User user = UserMapper.toUser(userDto);
-        log.info("User had been created: {}", user);
+        log.info("User is being created: {}", user);
         return userService.saveUser(user);
     }
 
     @PatchMapping("/{userId}")
     public User updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
         User user = UserMapper.toUser(userDto);
-        log.info("User had been updated: {}", userId);
+        log.info("User is being updated: {}", userId);
         return userService.updateUser(userId, user);
     }
 
