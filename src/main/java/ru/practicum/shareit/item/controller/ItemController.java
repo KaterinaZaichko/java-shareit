@@ -39,11 +39,11 @@ public class ItemController {
                 itemDto.setNextBooking(BookingMapper.toBookingDtoOutForItemController(
                         itemService.getNextBookingByItem(item)));
             }
-//            for (Comment comment : itemService.findCommentsByItem(item)) {
-//                CommentDto commentDto = CommentMapper.toCommentDto(comment);
-//                commentsByItem.add(commentDto);
-//            }
-//            itemDto.setComments(commentsByItem);
+            for (Comment comment : itemService.findCommentsByItem(item)) {
+                CommentDto commentDto = CommentMapper.toCommentDto(comment);
+                commentsByItem.add(commentDto);
+            }
+            itemDto.setComments(commentsByItem);
             itemsByOwner.add(itemDto);
         }
         return itemsByOwner;
