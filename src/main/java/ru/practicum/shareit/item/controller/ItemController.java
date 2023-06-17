@@ -4,12 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.service.BookingMapper;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.CommentMapper;
 import ru.practicum.shareit.item.service.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -21,33 +26,85 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<Item> getItemsOfUser(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.getItemsOfUser(userId);
+    public List<ItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") long userId) {
+        List<ItemDto> itemsByOwner = new ArrayList<>();
+        List<CommentDto> commentsByItem = new ArrayList<>();
+        for (Item item : itemService.getItemsByOwner(userId)) {
+            ItemDto itemDto = ItemMapper.toItemDto(item);
+            if (itemService.getLastBookingByItem(item) != null) {
+                itemDto.setLastBooking(BookingMapper.toBookingDtoOutForItemController(
+                        itemService.getLastBookingByItem(item)));
+            }
+            if (itemService.getNextBookingByItem(item) != null) {
+                itemDto.setNextBooking(BookingMapper.toBookingDtoOutForItemController(
+                        itemService.getNextBookingByItem(item)));
+            }
+//            for (Comment comment : itemService.findCommentsByItem(item)) {
+//                CommentDto commentDto = CommentMapper.toCommentDto(comment);
+//                commentsByItem.add(commentDto);
+//            }
+//            itemDto.setComments(commentsByItem);
+            itemsByOwner.add(itemDto);
+        }
+        return itemsByOwner;
     }
 
     @GetMapping("/{itemId}")
-    public Item getItemById(@PathVariable long itemId) {
-        return itemService.getItemById(itemId);
+    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") long userId,
+                               @PathVariable long itemId) {
+        Item item = itemService.getItemById(itemId);
+        ItemDto itemDto = ItemMapper.toItemDto(item);
+        if (itemService.getLastBookingByItem(item) != null && item.getOwner().getId().equals(userId)) {
+            itemDto.setLastBooking(BookingMapper.toBookingDtoOutForItemController(
+                    itemService.getLastBookingByItem(item)));
+        }
+        if (itemService.getNextBookingByItem(item) != null && item.getOwner().getId().equals(userId)) {
+            itemDto.setNextBooking(BookingMapper.toBookingDtoOutForItemController(
+                    itemService.getNextBookingByItem(item)));
+        }
+        List<CommentDto> commentsByItem = new ArrayList<>();
+        if (itemService.findCommentsByItem(item) != null) {
+            for (Comment comment : itemService.findCommentsByItem(item)) {
+                CommentDto commentDto = CommentMapper.toCommentDto(comment);
+                commentsByItem.add(commentDto);
+            }
+            itemDto.setComments(commentsByItem);
+        }
+        return itemDto;
     }
 
     @PostMapping
-    public Item saveItem(@RequestHeader("X-Sharer-User-Id") long userId, @RequestBody @Valid ItemDto itemDto) {
+    public ItemDto saveItem(@RequestHeader("X-Sharer-User-Id") long userId,
+                            @RequestBody @Valid ItemDto itemDto) {
         Item item = ItemMapper.toItem(itemDto);
-        log.info("Item had been created");
-        return itemService.saveItem(userId, item);
+        log.info("Item is being created");
+        return ItemMapper.toItemDto(itemService.saveItem(userId, item));
     }
 
     @PatchMapping("/{itemId}")
-    public Item updateItem(@RequestHeader("X-Sharer-User-Id") long userId,
-                           @PathVariable long itemId,
-                           @RequestBody ItemDto itemDto) {
+    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") long userId,
+                              @PathVariable long itemId,
+                              @RequestBody ItemDto itemDto) {
         Item item = ItemMapper.toItem(itemDto);
-        log.info("User had been updated");
-        return itemService.updateItem(userId, itemId, item);
+        log.info("Item is being updated");
+        return ItemMapper.toItemDto(itemService.updateItem(userId, itemId, item));
     }
 
     @GetMapping("/search")
-    public List<Item> getItemsByRequest(@RequestParam String text) {
-        return itemService.getItemsByRequest(text);
+    public List<ItemDto> search(@RequestParam String text) {
+        List<ItemDto> items = new ArrayList<>();
+        for (Item item : itemService.search(text)) {
+            items.add(ItemMapper.toItemDto(item));
+        }
+        return items;
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto saveComment(@RequestHeader("X-Sharer-User-Id") long userId,
+                                  @PathVariable long itemId,
+                                  @RequestBody @Valid CommentDto commentDto) {
+        Comment comment = CommentMapper.toComment(commentDto);
+        log.info("Comment is being created");
+        return CommentMapper.toCommentDto(itemService.saveComment(userId, itemId, comment));
     }
 }

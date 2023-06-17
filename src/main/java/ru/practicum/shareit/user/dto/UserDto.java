@@ -9,6 +9,7 @@ import javax.validation.constraints.NotEmpty;
 @Data
 @AllArgsConstructor
 public class UserDto {
+    private Long id;
     private String name;
     @NotEmpty
     @Email
