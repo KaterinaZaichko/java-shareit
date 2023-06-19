@@ -2,7 +2,7 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.shareit.booking.dto.BookingDtoOutForItemController;
+import ru.practicum.shareit.booking.dto.BookingDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -21,7 +21,7 @@ public class ItemDto {
     @NotNull
     private Boolean available;
     private Long request;
-    private BookingDtoOutForItemController lastBooking;
-    private BookingDtoOutForItemController nextBooking;
+    private BookingDto lastBooking;
+    private BookingDto nextBooking;
     private List<CommentDto> comments;
 }

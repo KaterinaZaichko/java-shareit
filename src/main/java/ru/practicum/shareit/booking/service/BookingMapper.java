@@ -1,43 +1,42 @@
 package ru.practicum.shareit.booking.service;
 
-import ru.practicum.shareit.booking.dto.BookingDtoIn;
-import ru.practicum.shareit.booking.dto.BookingDtoOutForBookingController;
-import ru.practicum.shareit.booking.dto.BookingDtoOutForItemController;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingFullDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 
 public class BookingMapper {
-    public static BookingDtoOutForBookingController toBookingDtoOutForBookingController(Booking booking) {
-        return new BookingDtoOutForBookingController(
-                booking.getId(),
-                booking.getStart(),
-                booking.getEnd(),
-                booking.getItem(),
-                booking.getBooker(),
-                booking.getStatus()
-        );
+    public static BookingFullDto toBookingFullDto(Booking booking) {
+        return BookingFullDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .item(booking.getItem())
+                .booker(booking.getBooker())
+                .status(booking.getStatus())
+                .build();
     }
 
-    public static BookingDtoOutForItemController toBookingDtoOutForItemController(Booking booking) {
-        return new BookingDtoOutForItemController(
-                booking.getId(),
-                booking.getStart(),
-                booking.getEnd(),
-                booking.getItem().getId(),
-                booking.getBooker().getId(),
-                booking.getStatus()
-        );
+    public static BookingDto toBookingDto(Booking booking) {
+        return BookingDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .itemId(booking.getItem().getId())
+                .bookerId(booking.getBooker().getId())
+                .status(booking.getStatus())
+                .build();
     }
 
-    public static Booking toBooking(BookingDtoIn bookingDtoIn) {
-        return new Booking(
-                null,
-                bookingDtoIn.getStart(),
-                bookingDtoIn.getEnd(),
-                null,
-                null,
-                Status.WAITING
-        );
+    public static Booking toBooking(BookingDto bookingDto) {
+        return Booking.builder()
+                .id(null)
+                .start(bookingDto.getStart())
+                .end(bookingDto.getEnd())
+                .item(null)
+                .booker(null)
+                .status(Status.WAITING)
+                .build();
     }
 }
 

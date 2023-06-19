@@ -32,11 +32,11 @@ public class ItemController {
         for (Item item : itemService.getItemsByOwner(userId)) {
             ItemDto itemDto = ItemMapper.toItemDto(item);
             if (itemService.getLastBookingByItem(item) != null) {
-                itemDto.setLastBooking(BookingMapper.toBookingDtoOutForItemController(
+                itemDto.setLastBooking(BookingMapper.toBookingDto(
                         itemService.getLastBookingByItem(item)));
             }
             if (itemService.getNextBookingByItem(item) != null) {
-                itemDto.setNextBooking(BookingMapper.toBookingDtoOutForItemController(
+                itemDto.setNextBooking(BookingMapper.toBookingDto(
                         itemService.getNextBookingByItem(item)));
             }
             for (Comment comment : itemService.findCommentsByItem(item)) {
@@ -55,11 +55,11 @@ public class ItemController {
         Item item = itemService.getItemById(itemId);
         ItemDto itemDto = ItemMapper.toItemDto(item);
         if (itemService.getLastBookingByItem(item) != null && item.getOwner().getId().equals(userId)) {
-            itemDto.setLastBooking(BookingMapper.toBookingDtoOutForItemController(
+            itemDto.setLastBooking(BookingMapper.toBookingDto(
                     itemService.getLastBookingByItem(item)));
         }
         if (itemService.getNextBookingByItem(item) != null && item.getOwner().getId().equals(userId)) {
-            itemDto.setNextBooking(BookingMapper.toBookingDtoOutForItemController(
+            itemDto.setNextBooking(BookingMapper.toBookingDto(
                     itemService.getNextBookingByItem(item)));
         }
         List<CommentDto> commentsByItem = new ArrayList<>();
