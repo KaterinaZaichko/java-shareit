@@ -10,6 +10,7 @@ import ru.practicum.shareit.user.service.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -21,27 +22,31 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<User> getUsers() {
-        return userService.getUsers();
+    public List<UserDto> getUsers() {
+        List<UserDto> users = new ArrayList<>();
+        for (User user : userService.getUsers()) {
+            users.add(UserMapper.toUserDto(user));
+        }
+        return users;
     }
 
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable Long userId) {
-        return userService.getUserById(userId);
+    public UserDto getUserById(@PathVariable Long userId) {
+        return UserMapper.toUserDto(userService.getUserById(userId));
     }
 
     @PostMapping
-    public User saveUser(@RequestBody @Valid UserDto userDto) {
+    public UserDto saveUser(@RequestBody @Valid UserDto userDto) {
         User user = UserMapper.toUser(userDto);
         log.info("User is being created: {}", user);
-        return userService.saveUser(user);
+        return UserMapper.toUserDto(userService.saveUser(user));
     }
 
     @PatchMapping("/{userId}")
-    public User updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
+    public UserDto updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
         User user = UserMapper.toUser(userDto);
         log.info("User is being updated: {}", userId);
-        return userService.updateUser(userId, user);
+        return UserMapper.toUserDto(userService.updateUser(userId, user));
     }
 
     @DeleteMapping("/{userId}")

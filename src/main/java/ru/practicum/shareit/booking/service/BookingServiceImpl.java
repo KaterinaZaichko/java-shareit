@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.exception.*;
@@ -89,25 +91,29 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getBookingsByBooker(long userId, String state) {
+    public List<Booking> getBookingsByBooker(long userId, String state, int from, int size) {
         User booker = userService.getUserById(userId);
         State valueState;
+        Pageable pageWithSomeElements = PageRequest.of(from > 0 ? from / size : 0, size);
         try {
-            valueState = State.valueOf(state);
+            valueState = State.valueOf(state.toUpperCase());
             switch (valueState) {
                 case CURRENT:
                     return bookingRepository.findAllByBookerAndStartBeforeAndEndAfter(
-                            booker, LocalDateTime.now(), LocalDateTime.now());
+                            booker, LocalDateTime.now(), LocalDateTime.now(), pageWithSomeElements);
                 case PAST:
                     return bookingRepository.findAllByBookerAndStatusAndEndBeforeOrderByStartDesc(
-                            booker, Status.APPROVED, LocalDateTime.now());
+                            booker, Status.APPROVED, LocalDateTime.now(), pageWithSomeElements);
                 case FUTURE:
                     return bookingRepository.findAllByBookerAndStatusInAndStartAfterOrderByStartDesc(
-                            booker, new HashSet<>(Arrays.asList(Status.APPROVED, Status.WAITING)), LocalDateTime.now());
+                            booker, new HashSet<>(Arrays.asList(Status.APPROVED, Status.WAITING)),
+                            LocalDateTime.now(), pageWithSomeElements);
                 case WAITING:
-                    return bookingRepository.findAllByBookerAndStatusOrderByStartDesc(booker, Status.WAITING);
+                    return bookingRepository.findAllByBookerAndStatusOrderByStartDesc(
+                            booker, Status.WAITING, pageWithSomeElements);
                 case REJECTED:
-                    return bookingRepository.findAllByBookerAndStatusOrderByStartDesc(booker, Status.REJECTED);
+                    return bookingRepository.findAllByBookerAndStatusOrderByStartDesc(
+                            booker, Status.REJECTED, pageWithSomeElements);
                 default:
                     throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
             }
@@ -115,31 +121,35 @@ public class BookingServiceImpl implements BookingService {
             if (!state.equals("ALL")) {
                 throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
             }
-            return bookingRepository.findAllByBookerOrderByStartDesc(booker);
+            return bookingRepository.findAllByBookerOrderByStartDesc(booker, pageWithSomeElements);
         }
     }
 
     @Override
-    public List<Booking> getBookingsByOwner(long userId, String state) {
+    public List<Booking> getBookingsByOwner(long userId, String state, int from, int size) {
         checkExistenceOfUser(userId);
         Set<Item> items = new HashSet<>(itemService.getItemsByOwner(userId));
         State valueState;
+        Pageable pageWithSomeElements = PageRequest.of(from > 0 ? from / size : 0, size);
         try {
-            valueState = State.valueOf(state);
+            valueState = State.valueOf(state.toUpperCase());
             switch (valueState) {
                 case CURRENT:
                     return bookingRepository.findAllByItemInAndStartBeforeAndEndAfterOrderByStartDesc(
-                            items, LocalDateTime.now(), LocalDateTime.now());
+                            items, LocalDateTime.now(), LocalDateTime.now(), pageWithSomeElements);
                 case PAST:
                     return bookingRepository.findAllByItemInAndStatusAndEndBeforeOrderByStartDesc(
-                            items, Status.APPROVED, LocalDateTime.now());
+                            items, Status.APPROVED, LocalDateTime.now(), pageWithSomeElements);
                 case FUTURE:
-                    return bookingRepository.findAllByItemInAndStatusInAndStartAfterOrderByStartDesc(items,
-                            new HashSet<>(Arrays.asList(Status.APPROVED, Status.WAITING)), LocalDateTime.now());
+                    return bookingRepository.findAllByItemInAndStatusInAndStartAfterOrderByStartDesc(
+                            items, new HashSet<>(Arrays.asList(Status.APPROVED, Status.WAITING)),
+                            LocalDateTime.now(), pageWithSomeElements);
                 case WAITING:
-                    return bookingRepository.findAllByItemInAndStatusOrderByStartDesc(items, Status.WAITING);
+                    return bookingRepository.findAllByItemInAndStatusOrderByStartDesc(
+                            items, Status.WAITING, pageWithSomeElements);
                 case REJECTED:
-                    return bookingRepository.findAllByItemInAndStatusOrderByStartDesc(items, Status.REJECTED);
+                    return bookingRepository.findAllByItemInAndStatusOrderByStartDesc(
+                            items, Status.REJECTED, pageWithSomeElements);
                 default:
                     throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
             }
@@ -147,7 +157,7 @@ public class BookingServiceImpl implements BookingService {
             if (!state.equals("ALL")) {
                 throw new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS");
             }
-            return bookingRepository.findAllByItemInOrderByStartDesc(items);
+            return bookingRepository.findAllByItemInOrderByStartDesc(items, pageWithSomeElements);
         }
     }
 

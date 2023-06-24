@@ -1,10 +1,13 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exception.CommentNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.UpdateNotAvailableException;
@@ -12,6 +15,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -23,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final UserService userService;
+    private final ItemRequestService itemRequestService;
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
@@ -34,6 +40,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public List<Item> getItemsByOwner(Long userId, int from, int size) {
+        User owner = userService.getUserById(userId);
+        Pageable pageWithSomeElements = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemRepository.findAllByOwnerOrderById(owner, pageWithSomeElements);
+    }
+
+    @Override
     public Item getItemById(Long itemId) {
         return itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(
                 String.format("Item with id %d not found", itemId))
@@ -41,9 +54,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item saveItem(Long userId, Item item) {
+    public Item saveItem(Long userId, ItemDto itemDto, Item item) {
         User owner = userService.getUserById(userId);
         item.setOwner(owner);
+        if (itemDto.getRequestId() != null) {
+            item.setRequest(itemRequestService.getItemRequestById(userId, itemDto.getRequestId()));
+        }
         return itemRepository.save(item);
     }
 
@@ -71,9 +87,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> search(String text) {
+    public List<Item> search(String text, int from, int size) {
         if (!text.isEmpty()) {
-            return itemRepository.search(text);
+            Pageable pageWithSomeElements = PageRequest.of(from > 0 ? from / size : 0, size);
+            return itemRepository.search(text, pageWithSomeElements);
         }
         return new ArrayList<>();
     }
@@ -109,5 +126,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Comment> findCommentsByItem(Item item) {
         return commentRepository.findAllByItem(item);
+    }
+
+    @Override
+    public List<Item> findItemsByRequest(ItemRequest itemRequestId) {
+        return itemRepository.findAllByRequest(itemRequestId);
     }
 }

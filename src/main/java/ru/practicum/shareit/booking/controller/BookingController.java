@@ -11,11 +11,13 @@ import ru.practicum.shareit.booking.service.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/bookings")
+@RequestMapping("/bookings")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -46,9 +48,11 @@ public class BookingController {
 
     @GetMapping
     public List<BookingFullDto> getBookingsByBooker(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                    @RequestParam(defaultValue = "ALL") String state) {
+                                                    @RequestParam(defaultValue = "ALL") String state,
+                                                    @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                                    @RequestParam(defaultValue = "10") @Positive int size) {
         List<BookingFullDto> bookingsByBooker = new ArrayList<>();
-        for (Booking booking : bookingService.getBookingsByBooker(userId, state)) {
+        for (Booking booking : bookingService.getBookingsByBooker(userId, state, from, size)) {
             bookingsByBooker.add(BookingMapper.toBookingFullDto(booking));
         }
         return bookingsByBooker;
@@ -56,9 +60,11 @@ public class BookingController {
 
     @GetMapping("/owner")
     public List<BookingFullDto> getBookingsByOwner(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                   @RequestParam(defaultValue = "ALL") String state) {
+                                                   @RequestParam(defaultValue = "ALL") String state,
+                                                   @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                                   @RequestParam(defaultValue = "10") @Positive int size) {
         List<BookingFullDto> bookingsByOwner = new ArrayList<>();
-        for (Booking booking : bookingService.getBookingsByOwner(userId, state)) {
+        for (Booking booking : bookingService.getBookingsByOwner(userId, state, from, size)) {
             bookingsByOwner.add(BookingMapper.toBookingFullDto(booking));
         }
         return bookingsByOwner;
