@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -49,8 +48,8 @@ class ItemRequestControllerTest {
         ItemRequestDto itemRequestDtoIn = new ItemRequestDto(null, "description", null, null);
         ItemRequestDto itemRequestDtoOut = new ItemRequestDto(0L, "description", now, null);
         ItemRequest itemRequestToCreate = new ItemRequest(0L, "description", user, now);
-        when(itemRequestService.save(userId, ItemRequestMapper.toItemRequest(itemRequestDtoIn)))
-                .thenReturn(itemRequestToCreate);
+        when(itemRequestService.save(userId, itemRequestDtoIn))
+                .thenReturn(ItemRequestMapper.toItemRequestDto(itemRequestToCreate));
 
         String result = mockMvc.perform(post("/requests")
                         .header("X-Sharer-User-Id", userId)
@@ -80,7 +79,7 @@ class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
-        verify(itemRequestService, never()).save(anyLong(), any(ItemRequest.class));
+        verify(itemRequestService, never()).save(anyLong(), any(ItemRequestDto.class));
     }
 
     @SneakyThrows
@@ -90,16 +89,14 @@ class ItemRequestControllerTest {
         User owner = new User(0L, "name", "email@mail.ru");
         User requester = new User(1L, "otherName", "otherEmail@mail.ru");
         ItemRequest request = new ItemRequest(1L, "description", requester, LocalDateTime.now());
-        Item item = new Item(1L, "name", "description", true, owner, request);
-        when(itemRequestService.getAllByRequestor(requestorId)).thenReturn(List.of(request));
-        when(itemService.findItemsByRequest(request)).thenReturn(List.of(item));
+        when(itemRequestService.getAllByRequestor(requestorId))
+                .thenReturn(List.of(ItemRequestMapper.toItemRequestDto(request)));
 
         mockMvc.perform(get("/requests")
                         .header("X-Sharer-User-Id", requestorId))
                 .andExpect(status().isOk());
 
         verify(itemRequestService).getAllByRequestor(requestorId);
-        verify(itemService, times(2)).findItemsByRequest(request);
     }
 
     @SneakyThrows
@@ -111,16 +108,14 @@ class ItemRequestControllerTest {
         User owner = new User(0L, "name", "email@mail.ru");
         User requester = new User(1L, "otherName", "otherEmail@mail.ru");
         ItemRequest request = new ItemRequest(1L, "description", requester, LocalDateTime.now());
-        Item item = new Item(1L, "name", "description", true, owner, request);
-        when(itemRequestService.getAllByRequestor(requestorId, from, size)).thenReturn(List.of(request));
-        when(itemService.findItemsByRequest(request)).thenReturn(List.of(item));
+        when(itemRequestService.getAllByRequestor(requestorId, from, size))
+                .thenReturn(List.of(ItemRequestMapper.toItemRequestDto(request)));
 
         mockMvc.perform(get("/requests/all?from=0&size=10")
                         .header("X-Sharer-User-Id", requestorId))
                 .andExpect(status().isOk());
 
         verify(itemRequestService).getAllByRequestor(requestorId, from, size);
-        verify(itemService, times(2)).findItemsByRequest(request);
     }
 
     @SneakyThrows
@@ -128,18 +123,15 @@ class ItemRequestControllerTest {
     void getItemRequestById() {
         long requestId = 0L;
         long userId = 0L;
-        LocalDateTime now = LocalDateTime.now();
-        User user = new User(0L, "name", "email@mail.ru");
-        ItemRequest itemRequestToGetting = new ItemRequest(0L, "description", user, now);
-        Item item = new Item(1L, "name", "description", true, user, itemRequestToGetting);
-        when(itemRequestService.getItemRequestById(userId, requestId)).thenReturn(itemRequestToGetting);
-        when(itemService.findItemsByRequest(itemRequestToGetting)).thenReturn(List.of(item));
+        ItemRequest itemRequestToGetting = new ItemRequest(
+                0L, "description", new User(), LocalDateTime.now());
+        when(itemRequestService.getItemRequestById(userId, requestId))
+                .thenReturn(ItemRequestMapper.toItemRequestDto(itemRequestToGetting));
 
         mockMvc.perform(get("/requests/{requestId}", requestId)
                         .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk());
 
         verify(itemRequestService).getItemRequestById(userId, requestId);
-        verify(itemService, times(2)).findItemsByRequest(itemRequestToGetting);
     }
 }

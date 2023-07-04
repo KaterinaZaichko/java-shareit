@@ -21,7 +21,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.service.ItemRequestService;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -48,7 +48,7 @@ class ItemServiceImplTest {
     @Mock
     private CommentRepository commentRepository;
     @Mock
-    private ItemRequestService itemRequestService;
+    private ItemRequestRepository itemRequestRepository;
     @InjectMocks
     private ItemServiceImpl itemService;
 
@@ -111,7 +111,7 @@ class ItemServiceImplTest {
         Item itemToSave = new Item(0L, "name", "description", true, null, itemRequest);
         when(userService.getUserById(owner.getId())).thenReturn(owner);
         when(itemRepository.save(itemToSave)).thenReturn(itemToSave);
-        when(itemRequestService.getItemRequestById(owner.getId(), itemDto.getRequestId())).thenReturn(itemRequest);
+        when(itemRequestRepository.findById(itemDto.getRequestId())).thenReturn(Optional.of(itemRequest));
 
         Item actualItem = itemService.saveItem(owner.getId(), itemDto, itemToSave);
 

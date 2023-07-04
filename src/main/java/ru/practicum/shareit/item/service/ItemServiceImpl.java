@@ -15,8 +15,9 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.service.ItemRequestService;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -28,8 +29,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final UserService userService;
-    private final ItemRequestService itemRequestService;
     private final ItemRepository itemRepository;
+    private final ItemRequestRepository itemRequestRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
@@ -58,7 +59,9 @@ public class ItemServiceImpl implements ItemService {
         User owner = userService.getUserById(userId);
         item.setOwner(owner);
         if (itemDto.getRequestId() != null) {
-            item.setRequest(itemRequestService.getItemRequestById(userId, itemDto.getRequestId()));
+            item.setRequest(itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new ItemRequestNotFoundException(
+                            String.format("ItemRequest with id %d not found", itemDto.getRequestId()))));
         }
         return itemRepository.save(item);
     }
