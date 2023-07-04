@@ -8,18 +8,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +33,8 @@ class ItemRequestServiceImplTest {
     @Mock
     private ItemRequestRepository itemRequestRepository;
     @Mock
+    private ItemRepository itemRepository;
+    @Mock
     private UserService userService;
     @InjectMocks
     private ItemRequestServiceImpl itemRequestService;
@@ -36,53 +42,71 @@ class ItemRequestServiceImplTest {
     @Test
     void save_whenUserFound_thenReturnSavedItemRequest() {
         long userId = 0L;
-        ItemRequest itemRequestToSave = new ItemRequest();
-        when(itemRequestRepository.save(itemRequestToSave)).thenReturn(itemRequestToSave);
+        User requester = new User();
+        ItemRequestDto itemRequestDto = new ItemRequestDto(null, null, null, null);
+        ItemRequest itemRequest = new ItemRequest(null, null, null, null);
+        ItemRequestDto expectedItemRequestDto = new ItemRequestDto(null, null, null, null);
+        when(userService.getUserById(userId)).thenReturn(requester);
+        when(itemRequestRepository.save(any(ItemRequest.class))).thenReturn(itemRequest);
 
-        ItemRequest savedItemRequest = itemRequestService.save(userId, itemRequestToSave);
+        ItemRequestDto actualItemRequestDto = itemRequestService.save(userId, itemRequestDto);
 
-        assertEquals(itemRequestToSave, savedItemRequest);
-        verify(itemRequestRepository).save(itemRequestToSave);
+        assertEquals(expectedItemRequestDto, actualItemRequestDto);
+        verify(itemRequestRepository).save(any(ItemRequest.class));
     }
 
     @Test
     void getAllByRequestorWithoutPagination_whenUserFound_thenReturnListOfItemRequests() {
-        User requestor = new User(0L, "name", "email@mail.ru");
-        List<ItemRequest> itemRequests = List.of(
-                new ItemRequest(0L, "description", requestor, LocalDateTime.now()));
-        when(userService.getUserById(requestor.getId())).thenReturn(requestor);
-        when(itemRequestRepository.findAllByRequestorOrderByCreated(requestor)).thenReturn(itemRequests);
+        long userId = 0L;
+        User requestor = new User();
+        ItemRequest itemRequest = new ItemRequest();
+        List<ItemRequestDto> expectedItemRequests = List.of(new ItemRequestDto(null, null, null,
+                List.of(new ItemDto(null, null, null, null, null,
+                        null, null, null))));
+        when(userService.getUserById(userId)).thenReturn(new User());
+        when(itemRequestRepository.findAllByRequestorOrderByCreated(requestor)).thenReturn(List.of(new ItemRequest()));
+        when(itemRepository.findAllByRequest(itemRequest)).thenReturn(List.of(new Item()));
 
-        List<ItemRequest> actualItemRequests = itemRequestService.getAllByRequestor(requestor.getId());
+        List<ItemRequestDto> actualItemRequests = itemRequestService.getAllByRequestor(userId);
 
-        assertEquals(itemRequests, actualItemRequests);
+        assertEquals(expectedItemRequests, actualItemRequests);
     }
 
     @Test
     void testGetAllByRequestorWithPagination_whenUserFound_thenReturnListOfItemRequests() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("created").descending());
-        User requestor = new User(0L, "name", "email@mail.ru");
-        User otherUser = new User(1L, "otherName", "otherEmail@mail.ru");
-        List<ItemRequest> itemRequests = List.of(
-                new ItemRequest(0L, "description", otherUser, LocalDateTime.now()));
-        when(userService.getUserById(requestor.getId())).thenReturn(requestor);
-        when(itemRequestRepository.findAllByRequestorNot(requestor, pageable)).thenReturn(itemRequests);
+        int from = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(from, size, Sort.by("created").descending());
+        long userId = 0L;
+        User requestor = new User();
+        ItemRequest itemRequest = new ItemRequest();
+        List<ItemRequestDto> expectedItemRequests = List.of(new ItemRequestDto(null, null, null,
+                List.of(new ItemDto(null, null, null, null, null,
+                        null, null, null))));
+        when(userService.getUserById(userId)).thenReturn(new User());
+        when(itemRequestRepository.findAllByRequestorNot(requestor, pageable)).thenReturn(List.of(new ItemRequest()));
+        when(itemRepository.findAllByRequest(itemRequest)).thenReturn(List.of(new Item()));
 
-        List<ItemRequest> actualItemRequests = itemRequestService.getAllByRequestor(requestor.getId(), 0, 10);
+        List<ItemRequestDto> actualItemRequests = itemRequestService.getAllByRequestor(userId, from, size);
 
-        assertEquals(itemRequests, actualItemRequests);
+        assertEquals(expectedItemRequests, actualItemRequests);
     }
 
     @Test
     void getItemRequestById_whenUserAndItemRequestFound_thenReturnItemRequest() {
         long userId = 0L;
-        long itemRequestId = 0L;
-        ItemRequest expectedItemRequest = new ItemRequest();
-        when(itemRequestRepository.findById(itemRequestId)).thenReturn(Optional.of(expectedItemRequest));
+        long requestId = 0L;
+        ItemRequest itemRequest = new ItemRequest();
+        ItemRequestDto expectedItemRequestDto = new ItemRequestDto(null, null, null,
+                List.of(new ItemDto(null, null, null, null, null,
+                        null, null, null)));
+        when(userService.getUserById(userId)).thenReturn(new User());
+        when(itemRequestRepository.findById(requestId)).thenReturn(Optional.of(itemRequest));
+        when(itemRepository.findAllByRequest(itemRequest)).thenReturn(List.of(new Item()));
 
-        ItemRequest actualItemRequest = itemRequestService.getItemRequestById(userId, itemRequestId);
+        ItemRequestDto actualItemRequestDto = itemRequestService.getItemRequestById(userId, requestId);
 
-        assertEquals(expectedItemRequest, actualItemRequest);
+        assertEquals(expectedItemRequestDto, actualItemRequestDto);
     }
 
     @Test
