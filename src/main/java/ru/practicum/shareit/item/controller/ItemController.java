@@ -14,6 +14,8 @@ import ru.practicum.shareit.item.service.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +28,12 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public List<ItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") long userId,
+                                         @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                         @RequestParam(defaultValue = "10") @Positive int size) {
         List<ItemDto> itemsByOwner = new ArrayList<>();
         List<CommentDto> commentsByItem = new ArrayList<>();
-        for (Item item : itemService.getItemsByOwner(userId)) {
+        for (Item item : itemService.getItemsByOwner(userId, from, size)) {
             ItemDto itemDto = ItemMapper.toItemDto(item);
             if (itemService.getLastBookingByItem(item) != null) {
                 itemDto.setLastBooking(BookingMapper.toBookingDto(
@@ -78,7 +82,7 @@ public class ItemController {
                             @RequestBody @Valid ItemDto itemDto) {
         Item item = ItemMapper.toItem(itemDto);
         log.info("Item is being created");
-        return ItemMapper.toItemDto(itemService.saveItem(userId, item));
+        return ItemMapper.toItemDto(itemService.saveItem(userId, itemDto, item));
     }
 
     @PatchMapping("/{itemId}")
@@ -91,9 +95,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam String text) {
+    public List<ItemDto> search(@RequestParam String text,
+                                @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                @RequestParam(defaultValue = "10") @Positive int size) {
         List<ItemDto> items = new ArrayList<>();
-        for (Item item : itemService.search(text)) {
+        for (Item item : itemService.search(text, from, size)) {
             items.add(ItemMapper.toItemDto(item));
         }
         return items;
