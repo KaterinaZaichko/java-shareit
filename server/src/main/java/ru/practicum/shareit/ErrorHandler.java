@@ -12,8 +12,6 @@ import ru.practicum.shareit.item.exception.UpdateNotAvailableException;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 
-import javax.validation.ConstraintViolationException;
-
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
@@ -33,8 +31,7 @@ public class ErrorHandler {
     @ExceptionHandler({DateSequenceException.class,
             BookingNotAvailableException.class,
             StatusChangingNotAvailableException.class,
-            CommentNotAvailableException.class,
-            ConstraintViolationException.class})
+            CommentNotAvailableException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse badRequestHandler(final RuntimeException e) {
         log.info("400: {}", e.getMessage(), e);
