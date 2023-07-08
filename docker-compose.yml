@@ -10,7 +10,8 @@ services:
       - server
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
-      - JAVA_TOOL_OPTIONS=-Duser.timezone=Europe/Moscow
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
 
   server:
     build: server
@@ -22,7 +23,8 @@ services:
       - db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
-      - JAVA_TOOL_OPTIONS=-Duser.timezone=Europe/Moscow
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
 
   db:
     image: postgres:13.7-alpine
@@ -33,4 +35,5 @@ services:
       - POSTGRES_DB=shareit
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - JAVA_TOOL_OPTIONS=-Duser.timezone=Europe/Moscow
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
